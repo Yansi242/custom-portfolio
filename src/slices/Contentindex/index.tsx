@@ -3,6 +3,8 @@ import Heading from "@/components/Heading";
 import { Content, isFilled } from "@prismicio/client";
 import { PrismicRichText, SliceComponentProps } from "@prismicio/react";
 import ContentList from "./ContentList";
+import { promises } from "dns";
+import { createClient } from "@/prismicio";
 /**
  * Props for `Contentindex`.
  */
@@ -11,7 +13,15 @@ export type ContentindexProps = SliceComponentProps<Content.ContentindexSlice>;
 /**
  * Component for "Contentindex" Slices.
  */
-const Contentindex = ({ slice }: ContentindexProps): JSX.Element => {
+const Contentindex = async ({ slice }: 
+  ContentindexProps): Promise<JSX.Element> => {
+    const client = createClient();
+    const blogPosts = await client.getAllByType("blog_post");
+    const projects = await client.getAllByType("project");
+    
+    const contentType = slice.primary.content_type || "Blog";
+
+    const items = contentType === "Blog" ? blogPosts : projects;
   return (
     <Bounded
       data-slice-type={slice.slice_type}
@@ -25,7 +35,9 @@ const Contentindex = ({ slice }: ContentindexProps): JSX.Element => {
           <PrismicRichText field={slice.primary.description}/>
         </div>
       )}
-      <ContentList/>
+      <ContentList items={items} contentType={contentType}
+      viewMoreText={slice.primary.view_more_text}
+      fallbackItemImage={slice.primary.fallback_item_image}/>
     </Bounded>
   );
 };
